@@ -7,7 +7,7 @@
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
-#define SCALE 16
+#define SCALE 2
 void updateScreen(int sizeX, int sizeY, int (*Array)[sizeY], SDL_Renderer *renderer)
 {
   SDL_Rect rect;
@@ -33,8 +33,8 @@ void updateScreen(int sizeX, int sizeY, int (*Array)[sizeY], SDL_Renderer *rende
   SDL_RenderPresent(renderer);
 }
 
-int WinMain(int argc, char *args[])
-// int main(int argc, char *args[])
+//int WinMain(int argc, char *args[])
+int main(int argc, char *args[])
 {
   SDL_Window *window = NULL;
   SDL_Surface *screenSurface = NULL;
@@ -70,7 +70,7 @@ int WinMain(int argc, char *args[])
   int(*tempArray)[sizeY] = b;
 
   initializeEmptyArray(sizeX, sizeY, Array);
-  // populateArray(sizeX, sizeY, Array);
+  populateArray(sizeX, sizeY, Array);
   updateScreen(sizeX, sizeY, Array, renderer);
 
   int t = 0;
@@ -89,13 +89,13 @@ int WinMain(int argc, char *args[])
   rect.h = blockScale;
   int mouseButton=0;
   int step = 0;
-  while (!exit)
+  while (t<500 && !exit)
   {
     SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     
     if (!pause || step){
-      // generationStep(sizeX, sizeY, Array, tempArray);
+      generationStep(sizeX, sizeY, Array, tempArray);
       t++;
     }
     step = 0;
@@ -125,7 +125,7 @@ int WinMain(int argc, char *args[])
   }
   int end = clock();
   end -= start;
-  // printf("%d%s", end, "\n");
+  printf("%d%s", end, "\n");
 
   SDL_DestroyWindow(window);
   SDL_Quit();

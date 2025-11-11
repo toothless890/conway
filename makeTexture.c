@@ -21,36 +21,111 @@ void populateArray(int sizeX, int sizeY, int (*Array)[sizeY]){
     }
 }
 
-void generationStep(int sizeX, int sizeY, int (*Array)[sizeY], int (*tempArray)[sizeY]){
-    int neighbors;
-    int result;
-    int modxplus1;
-    int modxminus1;
-    int modyplus1;
-    int a, b, c, d, e, f, g, h ,i;
 
-    for(int x = 0; x<sizeX; x++){
-        modxplus1 = (x+1)%sizeX;
-        modxminus1 = x>0?(x-1)%sizeX:sizeX-1;
-        
-        a = (Array[modxminus1][sizeY-1]);       b = (Array[x][sizeY-1]);        c =(Array[modxplus1][sizeY-1]);
-        d = (Array[modxminus1][0]);             e =Array[x][0];                 f =(Array[modxplus1][0]);
-        g = (Array[modxminus1][modyplus1]);     h =(Array[x][modyplus1]);       i =(Array[modxplus1][modyplus1]);
+static int* initializeNeighbors( int sizeX, int sizeY, int i, int (*Array)[sizeY], int* neighborArray)
+{
+    
 
-        for (int y =0; y < sizeY; y++){
-            modyplus1 = (y+2)%sizeY;
+    int i_right = (i+1)%sizeX;
+    int i_left = i>0?(i-1)%sizeX:sizeX-1;
+    
 
-            neighbors = (a+b+c+d+f+g+h+i); // no e (the cell we are checking for neighbors)
-            result =(neighbors == 3 || (neighbors == 2 && e))?1:0;
-            tempArray[x][y]= result;
+    neighborArray[0] = 0;
+    neighborArray[1] = 0;
+    neighborArray[2] = 0;
 
-            a = d;  b = e; c = f;
-            d = g; e = h; f = i;
-            g = Array[modxminus1][modyplus1];   h = Array[x][modyplus1];        i = Array[modxplus1][modyplus1];
-        }
-    }
-    memcpy(Array, tempArray, sizeof(int) * sizeX * sizeY);
+    neighborArray[3]= 0;
+    neighborArray[4]= 0;
+    neighborArray[5]= 0;
+
+    neighborArray[6]= (Array[i_left][0]);
+    neighborArray[7]= (Array[i][0]);
+    neighborArray[8]= (Array[i_right][0]);
+
+    return neighborArray;
+
 }
+
+static int* neighbors(int sizeX, int sizeY, int i, int j, int (*Array)[sizeY], int* neighborArray)
+{
+    int j_right = (j+1)%sizeY;
+    int i_right = (i+1)%sizeX;
+    int i_left = i>0?(i-1)%sizeX:sizeX-1;
+
+
+   neighborArray[0] = neighborArray[3];
+   neighborArray[1] = neighborArray[4];
+   neighborArray[2] = neighborArray[5];
+   neighborArray[3] = neighborArray[6];
+   neighborArray[4] = neighborArray[7];
+   neighborArray[5] = neighborArray[8];
+   neighborArray[6] = Array[i_left][j_right];
+   neighborArray[7] = Array[i][j_right];
+   neighborArray[8] = Array[i_right][j_right];
+
+   return neighborArray;
+
+}
+
+void generationStep(int sizeX, int sizeY, int (*Array)[sizeY], int (*tempArray)[sizeY]){
+   int i, j;
+   int na[9];
+   int* neighborArray = na;
+   int n;
+   for(i = 0; i< sizeX; i++){
+      initializeNeighbors(sizeX, sizeY, i, Array, neighborArray);
+      // loop through each cell and apply conway's rules, unrolled by a factor of 2
+      // For the sake of performance, I exit the loop early and use the collecter to finish. Improves score by ~0.5 somehow
+      for(j=0; j<sizeY-5; j+=2){
+         neighbors(sizeX, sizeY, i, j, Array, neighborArray);
+         n = neighborArray[0]+neighborArray[1]+neighborArray[2]+neighborArray[3]+neighborArray[5]+neighborArray[6]+neighborArray[7]+neighborArray[8];
+         tempArray[i][j] = ((n == 3) | (neighborArray[4] && (n == 2)));
+
+         neighbors(sizeX, sizeY, i, j+1, Array, neighborArray);
+         n = neighborArray[0]+neighborArray[1]+neighborArray[2]+neighborArray[3]+neighborArray[5]+neighborArray[6]+neighborArray[7]+neighborArray[8];
+         tempArray[i][j+1] = ((n == 3) | (neighborArray[4] && (n == 2)));
+      }
+
+      // collect any remaining cells skipped by loop unrolling.
+      for(; j<sizeY; j++){
+         neighbors(sizeX, sizeY, i, j, Array, neighborArray);
+         n = neighborArray[0]+neighborArray[1]+neighborArray[2]+neighborArray[3]+neighborArray[5]+neighborArray[6]+neighborArray[7]+neighborArray[8];
+         tempArray[i][j] = ((n == 3) | (neighborArray[4] && (n == 2)));
+      }
+   }
+   memcpy(Array, tempArray, sizeof(int) * sizeX * sizeY);
+}
+
+// void generationStep(int sizeX, int sizeY, int (*Array)[sizeY], int (*tempArray)[sizeY]){
+//     int neighbors;
+//     int result;
+//     int modxplus1;
+//     int modxminus1;
+//     int modyplus1;
+//     int a, b, c, d, e, f, g, h ,i;
+
+//     for(int x = 0; x<sizeX; x++){
+//         modxplus1 = (x+1)%sizeX;
+//         modxminus1 = x>0?(x-1)%sizeX:sizeX-1;
+//         modyplus1 = (0+2)%sizeY;
+        
+//         a = (Array[modxminus1][sizeY-1]);       b = (Array[x][sizeY-1]);        c =(Array[modxplus1][sizeY-1]);
+//         d = (Array[modxminus1][0]);             e =Array[x][0];                 f =(Array[modxplus1][0]);
+//         g = (Array[modxminus1][modyplus1]);     h =(Array[x][modyplus1]);       i =(Array[modxplus1][modyplus1]);
+
+//         for (int y =0; y < sizeY; y++){
+//             modyplus1 = (y+2)%sizeY;
+//             neighbors = (a+b+c+d+f+g+h+i); // no e (the cell we are checking for neighbors)
+//             result =(neighbors == 3 || (neighbors == 2 && e))?1:0;
+//             tempArray[x][y]= result;
+
+//             a = d;  b = e; c = f;
+//             d = g; e = h; f = i;
+//             g = Array[modxminus1][modyplus1];   h = Array[x][modyplus1];        i = Array[modxplus1][modyplus1];
+//         }
+//     }
+//     memcpy(Array, tempArray, sizeof(int) * sizeX * sizeY);
+// }
 
 // for checking that i didn't mess it up
 int tallyArray(int sizeX, int sizeY, int (*Array)[sizeY]){
