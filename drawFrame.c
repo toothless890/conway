@@ -10,6 +10,7 @@
 #define SCALE 2
 void updateScreen(int sizeX, int sizeY, int (*Array)[sizeY], SDL_Renderer *renderer)
 {
+
   SDL_Rect rect;
   int blockScale = SCALE-1;
   rect.x = 0;
@@ -31,13 +32,18 @@ void updateScreen(int sizeX, int sizeY, int (*Array)[sizeY], SDL_Renderer *rende
   }
 
   SDL_RenderPresent(renderer);
+  
 }
 
+<<<<<<< HEAD
 //int WinMain(int argc, char *args[])
+=======
+// int WinMain(int argc, char *args[])
+>>>>>>> 5c08f4e (fixed drawing)
 int main(int argc, char *args[])
 {
   SDL_Window *window = NULL;
-  SDL_Surface *screenSurface = NULL;
+  // SDL_Surface *screenSurface = NULL;
   SDL_Renderer *renderer = NULL;
   if (SDL_Init(SDL_INIT_VIDEO) < 0)
   {
@@ -55,11 +61,11 @@ int main(int argc, char *args[])
     return 1;
   }
 
-  screenSurface = SDL_GetWindowSurface(window);
+  // screenSurface = SDL_GetWindowSurface(window);
   renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
-  SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
-  SDL_UpdateWindowSurface(window);
+
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
 
   int sizeX = 1920/SCALE;
   int sizeY = 1080/SCALE;
@@ -91,8 +97,9 @@ int main(int argc, char *args[])
   int step = 0;
   while (t<500 && !exit)
   {
-    SDL_FillRect(screenSurface, NULL, SDL_MapRGB(screenSurface->format, 0x00, 0x00, 0x00));
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_RenderClear(renderer);
     
     if (!pause || step){
       generationStep(sizeX, sizeY, Array, tempArray);
@@ -110,8 +117,6 @@ int main(int argc, char *args[])
     SDL_RenderFillRect(renderer, &rect);
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     updateScreen(sizeX, sizeY, Array, renderer);
-    SDL_RenderPresent(renderer);
-
     SDL_Event e;
     while (SDL_PollEvent(&e)) {
         if (e.type == SDL_QUIT) exit = true;
@@ -125,7 +130,10 @@ int main(int argc, char *args[])
   }
   int end = clock();
   end -= start;
+<<<<<<< HEAD
   printf("%d%s", end, "\n");
+=======
+>>>>>>> 5c08f4e (fixed drawing)
 
   SDL_DestroyWindow(window);
   SDL_Quit();

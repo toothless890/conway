@@ -16,15 +16,35 @@ void populateArray(int sizeX, int sizeY, int (*Array)[sizeY]){
     srand(23265);
     for(int x = 0; x<sizeX; x++){
         for (int y =0; y < sizeY; y++){
-            Array[x][y] = rand()<=150000000;
+            Array[x][y] = rand()%3;
         }
     }
 }
 
+<<<<<<< HEAD
 
 static int* initializeNeighbors( int sizeX, int sizeY, int i, int (*Array)[sizeY], int* neighborArray)
 {
     
+=======
+void generationStep(int sizeX, int sizeY, int (*Array)[sizeY], int (*tempArray)[sizeY]){
+    int neighbors = 0;
+    int result = 0;
+    int modxplus1 = 0;
+    int modxminus1 = 0;
+    int modyplus1 = 0;
+    int a, b, c, d, e, f, g, h ,i;
+
+    for(int x = 0; x<sizeX; x++){
+        modxplus1 = (x+1)%sizeX;
+        modxminus1 = x>0?(x-1)%sizeX:sizeX-1;
+        
+        a = (Array[modxminus1][sizeY-1]);       b = (Array[x][sizeY-1]);        c =(Array[modxplus1][sizeY-1]);
+        d = (Array[modxminus1][0]);             e =Array[x][0];                 f =(Array[modxplus1][0]);
+        g = (Array[modxminus1][modyplus1]);     
+        h =(Array[x][modyplus1]);       
+        i =(Array[modxplus1][modyplus1]);
+>>>>>>> 5c08f4e (fixed drawing)
 
     int i_right = (i+1)%sizeX;
     int i_left = i>0?(i-1)%sizeX:sizeX-1;
