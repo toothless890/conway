@@ -25,4 +25,5 @@ exe:
 clean:
 	@echo -n Cleaning...
 	@rm *~ *.o drawFrame makeTexture 2>/dev/null || true
+	@rm *.exe 2>/dev/null|| true
 	@echo done

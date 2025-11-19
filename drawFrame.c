@@ -3,7 +3,11 @@
 #include <stdbool.h>
 #include "makeTexture.h"
 #include <time.h>
-
+#if defined(_WIN32) || defined(_WIN64)
+#define mainFunction WinMain
+#elif defined(__linux__) || defined(__unix__)
+#define mainFunction main
+#endif
 
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
@@ -12,7 +16,7 @@ void updateScreen(int sizeX, int sizeY, int (*Array)[sizeY], SDL_Renderer *rende
 {
 
   SDL_Rect rect;
-  int blockScale = SCALE-1;
+  int blockScale = SCALE - 1;
   rect.x = 0;
   rect.y = 0;
   rect.w = blockScale;
@@ -24,23 +28,18 @@ void updateScreen(int sizeX, int sizeY, int (*Array)[sizeY], SDL_Renderer *rende
     {
       if (Array[x][y] == 1)
       {
-        rect.x = x*SCALE;
-        rect.y = y*SCALE;
+        rect.x = x * SCALE;
+        rect.y = y * SCALE;
         SDL_RenderFillRect(renderer, &rect);
       }
     }
   }
 
   SDL_RenderPresent(renderer);
-  
 }
 
-<<<<<<< HEAD
-//int WinMain(int argc, char *args[])
-=======
 // int WinMain(int argc, char *args[])
->>>>>>> 5c08f4e (fixed drawing)
-int main(int argc, char *args[])
+int mainFunction(int argc, char *args[])
 {
   SDL_Window *window = NULL;
   // SDL_Surface *screenSurface = NULL;
@@ -66,14 +65,13 @@ int main(int argc, char *args[])
 
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-
-  int sizeX = 1920/SCALE;
-  int sizeY = 1080/SCALE;
+  int sizeX = 1920 / SCALE;
+  int sizeY = 1080 / SCALE;
   int a[sizeX][sizeY];
-  int(*Array)[sizeY] = a;
+  int (*Array)[sizeY] = a;
 
   int b[sizeX][sizeY];
-  int(*tempArray)[sizeY] = b;
+  int (*tempArray)[sizeY] = b;
 
   initializeEmptyArray(sizeX, sizeY, Array);
   populateArray(sizeX, sizeY, Array);
@@ -93,51 +91,71 @@ int main(int argc, char *args[])
   rect.y = 0;
   rect.w = blockScale;
   rect.h = blockScale;
-  int mouseButton=0;
+  int mouseButton = 0;
   int step = 0;
-  while (t<500 && !exit)
+  while (!exit)
   {
 
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_SetRenderDrawColor(renderer, 0, 0xFF, 0, 0);
     SDL_RenderClear(renderer);
-    
-    if (!pause || step){
+
+    if (!pause || step)
+    {
       generationStep(sizeX, sizeY, Array, tempArray);
       t++;
     }
     step = 0;
-    rect.x=mouseX/SCALE *SCALE;
-    rect.y=mouseY/SCALE *SCALE;
+    rect.x = mouseX / SCALE * SCALE;
+    rect.y = mouseY / SCALE * SCALE;
     mouseButton = SDL_GetMouseState(&mouseX, &mouseY);
     SDL_SetRenderDrawColor(renderer, 100, 100, 100, 100);
-    if (clicking){
-      if (mouseButton == 1) alterCell(sizeX, sizeY, Array, mouseX/SCALE, mouseY/SCALE, 1);
-      else alterCell(sizeX, sizeY, Array, mouseX/SCALE, mouseY/SCALE, 0);
+    if (clicking)
+    {
+      if (mouseButton == 1)
+        alterCell(sizeX, sizeY, Array, mouseX / SCALE, mouseY / SCALE, 1);
+      else
+        alterCell(sizeX, sizeY, Array, mouseX / SCALE, mouseY / SCALE, 0);
     }
     SDL_RenderFillRect(renderer, &rect);
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     updateScreen(sizeX, sizeY, Array, renderer);
     SDL_Event e;
-    while (SDL_PollEvent(&e)) {
-        if (e.type == SDL_QUIT) exit = true;
-        if (e.type == SDL_KEYDOWN) { if (e.key.keysym.sym ==SDLK_SPACE) pause = !pause;}
-        if (e.type == SDL_KEYDOWN) { if (e.key.keysym.sym ==SDLK_n) step= 1;}
-        if (e.type == SDL_KEYDOWN) { if (e.key.keysym.sym ==SDLK_c) initializeEmptyArray(sizeX, sizeY, Array);}
-        if (e.type == SDL_KEYDOWN) { if (e.key.keysym.sym ==SDLK_r) populateArray(sizeX, sizeY, Array);}
-        if (e.type == SDL_MOUSEBUTTONDOWN) clicking = true;
-        if (e.type == SDL_MOUSEBUTTONUP) clicking = false;
+    while (SDL_PollEvent(&e))
+    {
+      if (e.type == SDL_QUIT)
+        exit = true;
+      if (e.type == SDL_KEYDOWN)
+      {
+        if (e.key.keysym.sym == SDLK_SPACE)
+          pause = !pause;
+      }
+      if (e.type == SDL_KEYDOWN)
+      {
+        if (e.key.keysym.sym == SDLK_n)
+          step = 1;
+      }
+      if (e.type == SDL_KEYDOWN)
+      {
+        if (e.key.keysym.sym == SDLK_c)
+          initializeEmptyArray(sizeX, sizeY, Array);
+      }
+      if (e.type == SDL_KEYDOWN)
+      {
+        if (e.key.keysym.sym == SDLK_r)
+          populateArray(sizeX, sizeY, Array);
+      }
+      if (e.type == SDL_MOUSEBUTTONDOWN)
+        clicking = true;
+      if (e.type == SDL_MOUSEBUTTONUP)
+        clicking = false;
     }
   }
   int end = clock();
   end -= start;
-<<<<<<< HEAD
   printf("%d%s", end, "\n");
-=======
->>>>>>> 5c08f4e (fixed drawing)
 
   SDL_DestroyWindow(window);
   SDL_Quit();
 
   return 0;
-
 }
