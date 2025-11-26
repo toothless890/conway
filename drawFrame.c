@@ -12,6 +12,13 @@
 #define SCREEN_WIDTH 1920
 #define SCREEN_HEIGHT 1080
 #define SCALE 2
+#define DEFAULT_ZOOM_SCALE 16
+#define ZOOM_WIDTH 1920
+#define ZOOM_HEIGHT 1080
+#define max(x, y) (((x) > (y)) ? (x) : (y))
+#define min(x, y) (((x) < (y)) ? (x) : (y))
+
+
 void updateScreen(int sizeX, int sizeY, int (*Array)[sizeY], SDL_Renderer *renderer)
 {
 
@@ -22,6 +29,7 @@ void updateScreen(int sizeX, int sizeY, int (*Array)[sizeY], SDL_Renderer *rende
   rect.w = blockScale;
   rect.h = blockScale;
 
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
   for (int x = 0; x < sizeX; x++)
   {
     for (int y = 0; y < sizeY; y++)
@@ -31,12 +39,52 @@ void updateScreen(int sizeX, int sizeY, int (*Array)[sizeY], SDL_Renderer *rende
         rect.x = x * SCALE;
         rect.y = y * SCALE;
         SDL_RenderFillRect(renderer, &rect);
+      }  
+    }
+  }
+}
+
+void drawZoom(int zoomPosX, int zoomPosY, int sizeX, int sizeY, int mouseX, int mouseY, int zoomScale, int (*Array) [sizeY], SDL_Renderer *renderer){
+
+  SDL_Rect rect;
+  int blockScale = zoomScale - 1;
+
+  printf(" %d, %d\n",zoomPosX, zoomPosY);
+  rect.x = 0;
+  rect.y = 0;
+  rect.w = blockScale;
+  rect.h = blockScale;
+
+  int zoomSizeX = ZOOM_WIDTH / zoomScale;
+  int zoomSizeY = ZOOM_HEIGHT / zoomScale;
+  zoomPosX = zoomPosX/2 + zoomSizeX/4;
+  zoomPosY = zoomPosY/2 + zoomSizeY/4;
+  int xstart = max(zoomPosX-zoomSizeX/2, 0);
+  int xend = min(xstart+zoomSizeX/2, sizeX-zoomSizeX/2);
+  int ystart = max(zoomPosY-zoomSizeY/2, 0);
+  int yend = min(ystart+zoomSizeY/2, sizeY-zoomSizeY/2);
+  // int xstart = 0; int xend = 16;
+  // int ystart = 0; int yend = 16;
+  SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+  for ( int x = xstart; x< xend; x++){
+    for (int y = ystart; y< yend; y++){
+      // printf(" %d, %d\n",x, y);
+      if (Array[x][y] == 1)
+      {
+        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+      }  
+      else{
+        SDL_SetRenderDrawColor(renderer, 25, 25, 25, 25);
       }
+        rect.x = (x-xstart) * zoomScale;
+        rect.y = (y-ystart) * zoomScale;
+        SDL_RenderFillRect(renderer, &rect);
+      
     }
   }
 
-  SDL_RenderPresent(renderer);
 }
+
 
 // int WinMain(int argc, char *args[])
 int mainFunction(int argc, char *args[])
@@ -65,8 +113,11 @@ int mainFunction(int argc, char *args[])
 
   SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 
-  int sizeX = 1920 / SCALE;
-  int sizeY = 1080 / SCALE;
+  int sizeX = SCREEN_WIDTH / SCALE;
+  int sizeY = SCREEN_HEIGHT / SCALE;
+
+ 
+
   int a[sizeX][sizeY];
   int (*Array)[sizeY] = a;
 
@@ -77,13 +128,19 @@ int mainFunction(int argc, char *args[])
   populateArray(sizeX, sizeY, Array);
   updateScreen(sizeX, sizeY, Array, renderer);
 
+
+
   int t = 0;
   int start = clock();
   int exit = false;
   int pause = false;
   int clicking = false;
+  int zooming = false;
   int mouseX = 0;
   int mouseY = 0;
+  int zoomScale = DEFAULT_ZOOM_SCALE;
+  int zoomPosX = 0;
+  int zoomPosY = 0;
 
   SDL_Rect rect;
   int blockScale = SCALE;
@@ -96,7 +153,7 @@ int mainFunction(int argc, char *args[])
   while (!exit)
   {
 
-    SDL_SetRenderDrawColor(renderer, 0, 0xFF, 0, 0);
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
     if (!pause || step)
@@ -108,39 +165,47 @@ int mainFunction(int argc, char *args[])
     rect.x = mouseX / SCALE * SCALE;
     rect.y = mouseY / SCALE * SCALE;
     mouseButton = SDL_GetMouseState(&mouseX, &mouseY);
-    SDL_SetRenderDrawColor(renderer, 100, 100, 100, 100);
     if (clicking)
     {
       if (mouseButton == 1)
         alterCell(sizeX, sizeY, Array, mouseX / SCALE, mouseY / SCALE, 1);
       else
         alterCell(sizeX, sizeY, Array, mouseX / SCALE, mouseY / SCALE, 0);
-    }
-    SDL_RenderFillRect(renderer, &rect);
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    updateScreen(sizeX, sizeY, Array, renderer);
-    SDL_Event e;
-    while (SDL_PollEvent(&e))
-    {
+      }   
+      SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+      updateScreen(sizeX, sizeY, Array, renderer);
+      if(zooming){
+    	  drawZoom(zoomPosX, zoomPosY, sizeX, sizeY, mouseX, mouseY, zoomScale, Array, renderer);
+      }
+
+      SDL_SetRenderDrawColor(renderer, 100, 100, 100, 100);
+      SDL_RenderFillRect(renderer, &rect);
+      SDL_RenderPresent(renderer);
+
+      SDL_Event e;
+      while (SDL_PollEvent(&e))
+      {
       if (e.type == SDL_QUIT)
         exit = true;
       if (e.type == SDL_KEYDOWN)
       {
         if (e.key.keysym.sym == SDLK_SPACE)
           pause = !pause;
-      }
-      if (e.type == SDL_KEYDOWN)
-      {
+
         if (e.key.keysym.sym == SDLK_n)
           step = 1;
-      }
-      if (e.type == SDL_KEYDOWN)
-      {
+
+        if (e.key.keysym.sym == SDLK_z){
+          zooming = !zooming;
+          zoomPosX = mouseX;
+          zoomPosY = mouseY;
+        }
         if (e.key.keysym.sym == SDLK_c)
           initializeEmptyArray(sizeX, sizeY, Array);
-      }
-      if (e.type == SDL_KEYDOWN)
-      {
+        if (e.key.keysym.sym == SDLK_i)
+          zoomScale = min(zoomScale+2, 3210000);
+        if (e.key.keysym.sym == SDLK_o)
+          zoomScale = max(zoomScale -2, 2);
         if (e.key.keysym.sym == SDLK_r)
           populateArray(sizeX, sizeY, Array);
       }
